@@ -5,6 +5,7 @@ specific_ss.add(files(
                     'jit.c',
                     'utils.c',
                     'gdb.c',
+                    'dirtylog.c',
 
                     # TCG-related hooks
                     'hooks/tcg/backdoor.c',

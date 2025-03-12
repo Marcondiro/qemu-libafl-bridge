@@ -55,6 +55,7 @@
 //// --- Begin LibAFL code ---
 
 #include "libafl/hooks/cpu_run.h"
+#include "libafl/dirtylog.h"
 
 //// --- End LibAFL code ---
 
@@ -857,6 +858,14 @@ static uint32_t kvm_dirty_ring_reap_one(KVMState *s, CPUState *cpu)
                                  cur->offset);
         dirty_gfn_set_collected(cur);
         trace_kvm_dirty_ring_page(cpu->cpu_index, fetch, cur->offset);
+//// --- Begin LibAFL code ---
+        if (global_dirty_tracking & GLOBAL_DIRTY_EXPORT) {
+            struct dirty_gfn* gfn = g_new(struct dirty_gfn, 1);
+            gfn->slot = cur->slot;
+            gfn->offset = cur->offset;
+            g_hash_table_add(dirty_log_hash_set, gfn);
+        }
+//// --- End LibAFL code ---
         fetch++;
         count++;
     }
