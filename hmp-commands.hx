@@ -1858,4 +1858,31 @@ SRST
 ``xen-event-list``
   List event channels in the guest
 ERST
+//// --- Begin LibAFL code ---
+SRST
+``start_dirty_log_export``
+  Start dumping dirty log to file.
+ERST
+
+    {
+        .name       = "start_dirty_log_export",
+        .args_type  = "",
+        .params     = "",
+        .help       = "start dumping dirty log to file",
+        .cmd        = hmp_start_dirty_log_export,
+    },
+
+SRST
+``stop_dirty_log_export``
+  Stop dumping dirty log to file.
+ERST
+
+    {
+        .name       = "stop_dirty_log_export",
+        .args_type  = "",
+        .params     = "",
+        .help       = "stop dumping dirty log to file",
+        .cmd        = hmp_stop_dirty_log_export,
+    },
+//// --- End LibAFL code ---
 #endif
