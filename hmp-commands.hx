@@ -364,6 +364,35 @@ SRST
 ERST
 
     {
+        .name       = "loadvm_for_hotreload",
+        .args_type  = "name:s",
+        .params     = "tag",
+        .help       = "restore a VM snapshot from its tag and use it for future hotrealoads",
+        .cmd        = hmp_loadvm_for_hotreload,
+        .command_completion = loadvm_completion,
+    },
+
+SRST
+``loadvm`` *tag*
+  Set the whole virtual machine to the snapshot identified by the tag
+  *tag* and use it for future hotrealoads.
+ERST
+
+    {
+        .name       = "hotreload",
+        .args_type  = "",
+        .params     = "",
+        .help       = "load vm snapshot exploiting dirty logging",
+        .cmd        = hmp_hotreload,
+    },
+
+SRST
+``hotreload``
+  load vm snapshot exploiting dirty logging.
+  Must follow a loadvm_for_hotreload.
+ERST
+
+    {
         .name       = "delvm",
         .args_type  = "name:s",
         .params     = "tag",
@@ -1807,6 +1836,32 @@ SRST
 ERST
 
     {
+        .name       = "start_dirty_log_export",
+        .args_type  = "",
+        .params     = "",
+        .help       = "start dumping dirty log to file",
+        .cmd        = hmp_start_dirty_log_export,
+    },
+
+SRST
+``start_dirty_log_export``
+  Start dumping dirty log to file.
+ERST
+
+    {
+        .name       = "stop_dirty_log_export",
+        .args_type  = "",
+        .params     = "",
+        .help       = "stop dumping dirty log to file",
+        .cmd        = hmp_stop_dirty_log_export,
+    },
+
+SRST
+``stop_dirty_log_export``
+  Stop dumping dirty log to file.
+ERST
+
+    {
         .name       = "info",
         .args_type  = "item:s?",
         .params     = "[subcommand]",
@@ -1858,31 +1913,4 @@ SRST
 ``xen-event-list``
   List event channels in the guest
 ERST
-//// --- Begin LibAFL code ---
-SRST
-``start_dirty_log_export``
-  Start dumping dirty log to file.
-ERST
-
-    {
-        .name       = "start_dirty_log_export",
-        .args_type  = "",
-        .params     = "",
-        .help       = "start dumping dirty log to file",
-        .cmd        = hmp_start_dirty_log_export,
-    },
-
-SRST
-``stop_dirty_log_export``
-  Stop dumping dirty log to file.
-ERST
-
-    {
-        .name       = "stop_dirty_log_export",
-        .args_type  = "",
-        .params     = "",
-        .help       = "stop dumping dirty log to file",
-        .cmd        = hmp_stop_dirty_log_export,
-    },
-//// --- End LibAFL code ---
 #endif
