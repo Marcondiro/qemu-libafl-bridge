@@ -180,6 +180,8 @@ void hmp_info_cryptodev(Monitor *mon, const QDict *qdict);
 void hmp_dumpdtb(Monitor *mon, const QDict *qdict);
 
 //// --- Begin LibAFL code ---
+void hmp_loadvm_for_hotreload(Monitor *mon, const QDict *qdict);
+void hmp_hotreload(Monitor *mon, const QDict *qdict);
 void hmp_start_dirty_log_export(Monitor *mon, const QDict *qdict);
 void hmp_stop_dirty_log_export(Monitor *mon, const QDict *qdict);
 //// --- End LibAFL code ---

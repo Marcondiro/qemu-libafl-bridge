@@ -70,6 +70,9 @@
 #include "yank_functions.h"
 #include "system/qtest.h"
 #include "options.h"
+//// --- Begin LibAFL code ---
+#include "libafl/dirtylog.h"
+//// --- End LibAFL code ---
 
 const unsigned int postcopy_ram_discard_version;
 
@@ -3390,6 +3393,15 @@ bool load_snapshot(const char *name, const char *vmstate,
     QEMUFile *f;
     int ret;
     MigrationIncomingState *mis = migration_incoming_get_current();
+
+//// --- Begin LibAFL code ---
+if (global_hotreload != GLOBAL_HOTRELOAD_LOADVM && hotreload_snapshot) {
+    stop_dirty_log_export(errp);
+        free(hotreload_snapshot);
+        hotreload_snapshot = NULL;
+    }
+//// --- End LibAFL code ---
+
 
     if (!bdrv_all_can_snapshot(has_devices, devices, errp)) {
         return false;

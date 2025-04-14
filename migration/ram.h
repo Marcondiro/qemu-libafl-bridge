@@ -72,6 +72,16 @@ extern XBZRLECacheStats xbzrle_counters;
     INTERNAL_RAMBLOCK_FOREACH(block)                   \
         if (!qemu_ram_is_migratable(block)) {} else
 
+//// --- Begin LibAFL code ---
+#define GLOBAL_HOTRELOAD_OFF        0
+#define GLOBAL_HOTRELOAD_PREPARE    (1U << 0)
+#define GLOBAL_HOTRELOAD_LOADVM     (1U << 1)
+#define GLOBAL_HOTRELOAD_MASK       (0x3)
+
+extern char *hotreload_snapshot;
+extern unsigned int global_hotreload;
+//// --- End LibAFL code ---
+
 void ram_mig_init(void);
 int xbzrle_cache_resize(uint64_t new_size, Error **errp);
 uint64_t ram_bytes_remaining(void);

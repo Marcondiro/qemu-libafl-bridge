@@ -32,6 +32,10 @@
 #include "system/system.h"
 #include "options.h"
 #include "migration.h"
+//// --- Begin LibAFL code ---
+#include "ram.h"
+#include "libafl/dirtylog.h"
+//// --- End LibAFL code ---
 
 static void migration_global_dump(Monitor *mon)
 {
@@ -380,6 +384,27 @@ void hmp_loadvm(Monitor *mon, const QDict *qdict)
 
     hmp_handle_error(mon, err);
 }
+
+//// --- Begin LibAFL code ---
+void hmp_loadvm_for_hotreload(Monitor *mon, const QDict *qdict)
+{
+    const char *name = qdict_get_str(qdict, "name");
+    Error *err = NULL;
+
+    loadvm_for_hotreload(&err, name);
+
+    hmp_handle_error(mon, err);
+}
+
+void hmp_hotreload(Monitor *mon, const QDict *qdict)
+{
+    Error *err = NULL;
+
+    hotreload(&err);
+
+    hmp_handle_error(mon, err);
+}
+//// --- End LibAFL code ---
 
 void hmp_savevm(Monitor *mon, const QDict *qdict)
 {

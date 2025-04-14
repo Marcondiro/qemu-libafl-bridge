@@ -59,8 +59,12 @@
 #include "system/runstate.h"
 #include "rdma.h"
 #include "options.h"
-#include "system/dirtylimit.h"
-#include "system/kvm.h"
+#include "sysemu/dirtylimit.h"
+#include "sysemu/kvm.h"
+//// --- Begin LibAFL code ---
+#include "libafl/dirtylog.h"
+#include "exec/address-spaces.h"
+//// --- End LibAFL code ---
 
 #include "hw/boards.h" /* for machine_dump_guest_core() */
 
@@ -88,6 +92,12 @@
  * the pages region in the migration file at a time.
  */
 #define MAPPED_RAM_LOAD_BUF_SIZE 0x100000
+
+//// --- Begin LibAFL code ---
+//TODO somehow make sure that the snapshot didn't change in between?
+char* hotreload_snapshot = NULL;
+unsigned int global_hotreload = GLOBAL_HOTRELOAD_OFF;
+//// --- End LibAFL code ---
 
 XBZRLECacheStats xbzrle_counters;
 
@@ -1119,9 +1129,16 @@ static int save_zero_page(RAMState *rs, PageSearchStatus *pss,
     stat64_add(&mig_stats.zero_pages, 1);
 
     if (migrate_mapped_ram()) {
-        /* zero pages are not transferred with mapped-ram */
-        clear_bit_atomic(offset >> TARGET_PAGE_BITS, pss->block->file_bmap);
-        return 1;
+        // /* zero pages are not transferred with mapped-ram */
+        // clear_bit_atomic(offset >> TARGET_PAGE_BITS, pss->block->file_bmap);
+        // return 1;
+//// --- Begin LibAFL code ---
+        /*
+         * Quick and dirty fix for snapshots: force zero pages to be saved since
+         * at restore the memory can be dirty and not always 0 as in migration
+         */
+        return 0;
+//// --- End LibAFL code ---
     }
 
     len += save_page_header(pss, file, pss->block, offset | RAM_SAVE_FLAG_ZERO);
@@ -3920,6 +3937,30 @@ err:
     return false;
 }
 
+//// --- Begin LibAFL code ---
+static void dirty_ring_to_bitmap(gpointer key, gpointer value, gpointer block_bitmap_errp) {
+    RAMBlock *dirty_block;
+    RAMBlock *block = ((RAMBlock **) block_bitmap_errp)[0];
+    unsigned long *bitmap = ((unsigned long **) block_bitmap_errp)[1];
+    Error **errp = ((Error ***) block_bitmap_errp)[2];
+    void *dirty_host = *((void **) key);
+    ram_addr_t offset;
+
+    dirty_block = qemu_ram_block_from_host(dirty_host, false, &offset);
+
+    if (!dirty_block) {
+        error_setg(errp, "Failed to translate host address %p", dirty_host);
+        return;
+    }
+
+    if (dirty_block != block) {
+        return;
+    }
+
+    set_bit(offset >> TARGET_PAGE_BITS, bitmap);
+}
+//// --- End LibAFL code ---
+
 static void parse_ramblock_mapped_ram(QEMUFile *f, RAMBlock *block,
                                       ram_addr_t length, Error **errp)
 {
@@ -3951,11 +3992,25 @@ static void parse_ramblock_mapped_ram(QEMUFile *f, RAMBlock *block,
     bitmap_size = BITS_TO_LONGS(num_pages) * sizeof(unsigned long);
 
     bitmap = g_malloc0(bitmap_size);
-    if (qemu_get_buffer_at(f, (uint8_t *)bitmap, bitmap_size,
-                           header.bitmap_offset) != bitmap_size) {
+    // if (qemu_get_buffer_at(f, (uint8_t *)bitmap, bitmap_size,
+    //                        header.bitmap_offset) != bitmap_size) {
+    //     error_setg(errp, "Error reading dirty bitmap");
+    //     return;
+    // }
+//// --- Begin LibAFL code ---
+    if (global_hotreload & GLOBAL_HOTRELOAD_LOADVM) {
+        void* block_bitmap_errp[3] = { block, bitmap, errp };
+        g_hash_table_foreach(dirty_log_hash_set, dirty_ring_to_bitmap,
+            block_bitmap_errp);
+        if (*errp) {
+            return;
+        }
+    } else if (qemu_get_buffer_at(f, (uint8_t *)bitmap, bitmap_size,
+                                  header.bitmap_offset) != bitmap_size) {
         error_setg(errp, "Error reading dirty bitmap");
         return;
     }
+//// --- End LibAFL code ---
 
     if (!read_ramblock_mapped_ram(f, block, num_pages, bitmap, errp)) {
         return;
