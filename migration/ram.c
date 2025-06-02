@@ -59,8 +59,8 @@
 #include "system/runstate.h"
 #include "rdma.h"
 #include "options.h"
-#include "sysemu/dirtylimit.h"
-#include "sysemu/kvm.h"
+#include "system/dirtylimit.h"
+#include "system/kvm.h"
 //// --- Begin LibAFL code ---
 #include "libafl/dirtylog.h"
 #include "exec/address-spaces.h"

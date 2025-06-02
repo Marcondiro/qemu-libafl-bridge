@@ -16,11 +16,11 @@
 #include "qapi/error.h"
 #include "monitor/hmp.h"
 #include "monitor/monitor.h"
-#include "sysemu/kvm.h"
+#include "system/kvm.h"
 #include "exec/memory.h"
 #include "migration/ram.h"
 #include "migration/snapshot.h"
-#include "sysemu/runstate.h"
+#include "system/runstate.h"
 #include "qapi/qapi-commands-migration.h"
 
 /* CPU generation id */
